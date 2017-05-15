@@ -1,0 +1,16 @@
+div#ProgramBoard
+{
+    background: grey;
+    width: 1300px ;
+    height: 600px;
+    margin: 0px auto;
+    display: inline-block;
+    border: #fff 5px solid;
+    overflow: hidden;
+    margin-top: 25px;
+    margin-left: 25px;
+    margin-right: 2px;
+    z-index: 0;
+    background-image: url("../Images/map.jpg");
+    background-size: 100%;
+}

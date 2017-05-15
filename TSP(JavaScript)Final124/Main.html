@@ -1,0 +1,235 @@
+<html>
+<head>
+     <link rel="stylesheet" type="text/css" href="Css/CssBlocks.css"></link>
+        <script type="text/javascript" src="JavaScriptCode/Node.js"></script>
+      <script type="text/javascript" src="JavaScriptCode/Lines.Js"></script>
+    <script>
+        var cnv,ctx,sumOfCosts=0;
+        var counter = 0;
+        var counter1 = 0;
+        var Nodes = [];
+        var Lines = [];
+
+          var SceneImages = [];
+            var SceneImagesSrcs =[
+              "Images/Target.png",
+                "Images/Target1.png",
+            ];
+          for(var i=0;i<SceneImagesSrcs.length;i++){
+               SceneImages[i] = new Image();
+               SceneImages[i].src = SceneImagesSrcs[i];
+          }
+        function init(){
+
+            cnv = document.getElementById("MyC");
+              ctx = cnv.getContext("2d");
+
+           for(var i =100;i<1000;i+=50){
+              for(var j =100;j<400;j+=50){
+                if(Math.floor((Math.random() * 10) + 0)==Math.floor((Math.random() * 10) + 0))
+                {
+                    var index = Nodes.length;
+                     Nodes.push(new node(i+100,j,50,50,index,SceneImages[0]));
+                }
+
+              }
+           }
+
+
+            for(var i = 0 ; i<Nodes.length ; i++ ) {
+                for(var j =0;j<Nodes.length;j++)
+                {
+                    if(i<j)
+                    {
+                        Lines.push(new Line(Nodes[i],Nodes[j],Math.floor((Math.random() * 1000) + 0),"#000000"));
+                    }
+                    if(i!=j)
+                    {
+                        Nodes[i].childs.push(Nodes[j]);
+                        Nodes[i].childs.forEach(function(item){
+                        item.parent = Nodes[i];
+                      });
+                    }
+
+                }
+
+            }
+
+            Nodes.forEach(function(item1){
+              item1.childs.forEach(function(item){
+                 item.parent = item1;
+              });
+            });
+
+
+
+            DrawNodes();
+            DrawLines();
+            Ucs(Nodes[0],Nodes[Nodes.length-1]);
+
+        }
+
+
+        function DrawNodes(){
+               window.requestAnimationFrame(DrawNodes);
+            Nodes.forEach(function(item){
+               item.Draw(ctx);
+               item.DrawIndex(ctx);
+            });
+        }
+
+        function DrawLines(){
+             window.requestAnimationFrame(DrawLines);
+            Lines.forEach(function(item){
+               item.Draw(ctx);
+               item.DrawCost(ctx);
+            });
+        }
+
+
+
+
+        function getMin()
+        {
+          var childs = arguments[0];
+          var min;
+          var minChild;
+
+
+          childs.forEach(function(item){
+            if(item.visited==false && item.goal == false )
+            {
+              min = item.totalCost;
+              minChild = item;
+              return;
+            }
+          });
+
+
+          childs.forEach(function(item){
+            if(item.visited==false && item.goal == false)
+            {
+                if(item.totalCost<=min) min = item.totalCost;
+            }
+          });
+
+          childs.forEach(function(item){
+            if(item.visited==false && item.goal == false)
+            {
+              if(item.totalCost==min){
+                  minChild = item;}
+            }
+          });
+
+          return minChild;
+
+        }
+        function getChilds(node1)
+        {
+           return node1.childs;
+        }
+        function getTotalCost(node1,node2)
+        {
+
+
+          Lines.forEach(function(item3){
+               if((item3.start==node1 && item3.end==node2)||(item3.end==node1 && item3.start==node2))
+               {
+                 cost = item3.cost;
+               }
+           });
+
+
+
+          if(node2.totalCost==0)
+          {
+            node2.totalCost = node1.totalCost+cost;
+            node2.oldTotalCost = node2.totalCost;
+          }
+          else
+          {
+            node2.oldTotalCost = node2.totalCost;
+            node2.totalCost = node1.totalCost+cost;
+            if(node2.totalCost>=node2.oldTotalCost)
+            {
+              node2.totalCost = node2.oldTotalCost;
+            }
+          }
+
+
+        //  console.log(node1.index+" -- "+ node2.index+" = "+cost);
+          console.log(node1.index+" -> "+node2.index+" = "+node2.totalCost);
+
+        }
+
+        var visited = [];
+        var childs = [];
+        var pointer = childs[0];
+
+        function Ucs(start,goal)
+        {
+
+          console.log("start = "+start.index);
+          console.log("goal = "+goal.index);
+          console.log("////////////");
+          goal.goal = true;
+
+
+       while (true) {
+
+         visited.push(start);
+         start.visited = true;
+         start.imageUpdate(SceneImages[1]);
+
+         console.log("visited = "+start.index);
+
+
+         childs = getChilds(start);
+
+
+
+         childs.forEach(function(item){
+          getTotalCost(start,item);
+         });
+
+         if( (visited.length==Nodes.length-1) )
+            {
+              console.log("////////////");
+              console.log("goal = "+goal.index);
+              goal.imageUpdate(SceneImages[1]);
+              visited.push(goal);
+              break;
+            }
+
+         start = getMin(childs);
+       }
+
+       var leastCost = 0;
+       for(var i=1;i<visited.length;i++)
+       {
+
+         var cost=0;
+         Lines.forEach(function(item3){
+              if((item3.start==visited[i-1] && item3.end==visited[i])||(item3.end==visited[i-1] && item3.start==visited[i]))
+              {
+                cost = item3.cost;
+                item3.color = "#000000";
+                item3.lineWidth = 1;
+                item3.appearAlways = true;
+              }
+          });
+
+         leastCost+=cost;
+       }
+       console.log("least Cost = "+leastCost);
+              console.log("/////////");
+        }
+
+    </script>
+    </head>
+<body onload="init()" style="background:Black;">
+    <div id="ProgramBoard" >
+      <canvas id="MyC" width="1300" height="600" style="position:absolute;"></canvas>
+    </div>
+    </body>
+</html>
